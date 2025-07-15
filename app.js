@@ -1,16 +1,25 @@
 import express from 'express';
+import path from 'path';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import bodyParser from 'body-parser';
 import cors from 'cors';
 import { v4 as uuid } from 'uuid';
 
+
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
 const app = express();
+
+const __filename = fileURLToPath(import.meta.url); 
+const __dirname = dirname(__filename);
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'super_secret_key_change_me';
 
 app.use(cors());
 app.use(bodyParser.json());
+app.use(express.static(path.join(__dirname, 'public')));
 
 // ---------------------  IN‑MEMORY DB  ---------------------
 const users = [];     // { id, name, email, passwordHash, role }
