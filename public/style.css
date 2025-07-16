@@ -1,0 +1,92 @@
+body {
+  background-color: #f8f9fa;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  padding: 30px;
+  margin: 0;
+}
+
+h2 {
+  color: #343a40;
+  margin-top: 30px;
+}
+
+input {
+  padding: 10px;
+  margin: 5px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  width: 200px;
+}
+
+button {
+  padding: 10px 15px;
+  margin: 5px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+
+#products {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.product-card {
+  background: white;
+  padding: 10px 15px;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  box-shadow: 1px 1px 3px rgba(0,0,0,0.05);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Cart styling */
+#cart div {
+  background: #ffffff;
+  padding: 10px 15px;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  margin: 8px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+#cart input[type="number"] {
+  width: 60px;
+  margin: 0 10px;
+  padding: 5px;
+}
+
+/* Pagination styling */
+.pagination {
+  margin-top: 15px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+#pageNum {
+  font-weight: bold;
+  font-size: 18px;
+  color: #333;
+}
+
+pre {
+  background-color: #ffffff;
+  padding: 10px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  overflow-x: auto;
+  max-width: 600px;
+}

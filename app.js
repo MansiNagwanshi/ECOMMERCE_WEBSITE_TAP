@@ -28,16 +28,21 @@ const carts = {};     // userId -> [ { productId, quantity } ]
 const orders = [];    // { id, userId, items:[{productId, quantity}], total, date }
 
 // Seed one admin & some demo products
-(async () => {
+ (async () => {
+  try {
     const adminPwdHash = await bcrypt.hash('admin123', 10);
     users.push({ id: uuid(), name: 'Admin', email: 'admin@example.com', passwordHash: adminPwdHash, role: 'admin' });
 
     products.push(
-        { id: uuid(), name: 'Running Shoes', category: 'Footwear', price: 3500, stock: 50 },
-        { id: uuid(), name: 'Denim Jacket', category: 'Clothing', price: 2200, stock: 30 },
-        { id: uuid(), name: 'Wireless Mouse', category: 'Electronics', price: 799, stock: 100 }
+      { id: uuid(), name: 'Running Shoes', category: 'Footwear', price: 3500, stock: 50 },
+      { id: uuid(), name: 'Denim Jacket', category: 'Clothing', price: 2200, stock: 30 },
+      { id: uuid(), name: 'Wireless Mouse', category: 'Electronics', price: 799, stock: 100 }
     );
+  } catch (err) {
+    console.error('Error seeding data:', err);
+  }
 })();
+
 
 // -----------------  HELPER / MIDDLEWARE  -----------------
 function generateToken(user) {
@@ -65,7 +70,7 @@ function roleRequired(role) {
     };
 }
 
-// -----------------------  ROUTES  ------------------------
+
 
 // Auth ----------------------------------------------------
 app.post('/register', async (req, res) => {
@@ -88,6 +93,7 @@ app.post('/login', async (req, res) => {
 
 // Products ------------------------------------------------
 app.get('/products', (req, res) => {
+    console.log(products);
     const { page = 1, limit = 10, search = '', category } = req.query;
     let result = [...products];
     if (search) result = result.filter(p => p.name.toLowerCase().includes(search.toLowerCase()));
@@ -192,6 +198,5 @@ app.get('/orders', authRequired, (req, res) => {
     const myOrders = orders.filter(o => o.userId === req.user.id);
     res.json(myOrders);
 });
-
 // --------------------  START SERVER  ---------------------
 app.listen(PORT, () => console.log(`API running at http://localhost:${PORT}`));

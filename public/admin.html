@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Panel – ECOMMERCE_WEBSITE_TAP</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .admin-section {
+      max-width: 800px;
+      margin: auto;
+      padding: 2rem;
+    }
+
+    h1, h2 {
+      text-align: center;
+      color: #343a40;
+    }
+
+    input, select, button {
+      padding: 8px;
+      margin: 5px 0;
+      width: 100%;
+      max-width: 400px;
+      display: block;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    button {
+      background-color: #28a745;
+    }
+
+    button:hover {
+      background-color: #218838;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+    }
+
+    th, td {
+      border: 1px solid #ddd;
+      padding: 10px;
+      text-align: left;
+    }
+
+    th {
+      background-color: #f1f1f1;
+    }
+
+    td input {
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+  <div class="admin-section">
+    <h1>Admin Panel</h1>
+    <p>Login with your admin credentials to manage products.</p>
+
+    <!-- Login -->
+    <h2>Admin Login</h2>
+    <input id="adminEmail" placeholder="Email" value="admin@example.com" />
+    <input id="adminPwd" placeholder="Password" type="password" value="admin123" />
+    <button onclick="adminLogin()">Login</button>
+
+    <!-- Add Product -->
+    <h2>Add New Product</h2>
+    <input id="prodName" placeholder="Product Name" />
+    <input id="prodCategory" placeholder="Category" />
+    <input id="prodPrice" placeholder="Price" type="number" />
+    <input id="prodStock" placeholder="Stock" type="number" />
+    <button onclick="addProduct()">Add Product</button>
+
+    <!-- Product Table -->
+    <h2>Product List</h2>
+    <table id="productTable">
+      <thead>
+        <tr>
+          <th>Name</th><th>Category</th><th>Price</th><th>Stock</th><th>Actions</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <script>
+    const API = "http://localhost:3000";
+    let adminToken = '';
+
+    function adminLogin() {
+      fetch(API + '/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: document.getElementById('adminEmail').value,
+          password: document.getElementById('adminPwd').value
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.token) {
+          adminToken = data.token;
+          alert('Login successful!');
+          loadProducts();
+        } else {
+          alert('Login failed! Please check credentials.');
+        }
+      });
+    }
+
+    function addProduct() {
+      const body = {
+        name: prodName.value,
+        category: prodCategory.value,
+        price: Number(prodPrice.value),
+        stock: Number(prodStock.value)
+      };
+
+      fetch(API + '/products', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + adminToken
+        },
+        body: JSON.stringify(body)
+      })
+      .then(res => res.json())
+      .then(() => {
+        alert('Product added successfully!');
+        clearAddForm();
+        loadProducts();
+      });
+    }
+
+    function clearAddForm() {
+      prodName.value = '';
+      prodCategory.value = '';
+      prodPrice.value = '';
+      prodStock.value = '';
+    }
+
+    function loadProducts() {
+      fetch(API + '/products')
+        .then(res => res.json())
+        .then(({ data }) => {
+          const tbody = document.querySelector('#productTable tbody');
+          tbody.innerHTML = '';
+          data.forEach(p => {
+            tbody.innerHTML += `
+              <tr id="row-${p.id}">
+                <td><input value="${p.name}" onchange="editField('${p.id}', 'name', this.value)"></td>
+                <td><input value="${p.category}" onchange="editField('${p.id}', 'category', this.value)"></td>
+                <td><input type="number" value="${p.price}" onchange="editField('${p.id}', 'price', this.value)"></td>
+                <td><input type="number" value="${p.stock}" onchange="editField('${p.id}', 'stock', this.value)"></td>
+                <td><button onclick="deleteProduct('${p.id}')">Delete</button></td>
+              </tr>
+            `;
+          });
+        });
+    }
+
+    function editField(id, field, value) {
+      const body = { [field]: field === 'price' || field === 'stock' ? Number(value) : value };
+      fetch(API + '/products/' + id, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + adminToken
+        },
+        body: JSON.stringify(body)
+      });
+    }
+
+    function deleteProduct(id) {
+      if (!confirm('Are you sure you want to delete this product?')) return;
+      fetch(API + '/products/' + id, {
+        method: 'DELETE',
+        headers: { 'Authorization': 'Bearer ' + adminToken }
+      }).then(() => loadProducts());
+    }
+  </script>
+</body>
+</html>

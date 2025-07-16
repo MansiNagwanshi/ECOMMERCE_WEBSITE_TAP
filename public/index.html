@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Ecommerce_WEBSITE_TAP</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <h2>Login</h2>
@@ -11,14 +12,27 @@
   <button onclick="login()">Login</button>
 
   <h2>Products</h2>
+
+  <!-- Search & Pagination UI -->
+  <input id="search" placeholder="Search by name or category">
+  <button onclick="loadProducts()">Search</button>
+  <div class="pagination">
+    <button onclick="prevPage()">Previous</button>
+    <span id="pageNum">1</span>
+    <button onclick="nextPage()">Next</button>
+  </div>
+
+  <!-- Product List -->
   <div id="products"></div>
 
   <h2>Cart</h2>
-  <pre id="cartData"></pre>
+  <div id="cart"></div>
   <button onclick="placeOrder()">Place Order</button>
 
   <script>
     let token = '';
+    let currentPage = 1;
+
     async function login() {
       const email = document.getElementById('email').value;
       const password = document.getElementById('password').value;
@@ -34,14 +48,29 @@
     }
 
     async function loadProducts() {
-      const res = await fetch('/products');
-      const products = await res.json();
+      const search = document.getElementById('search').value;
+      const res = await fetch(`/products?page=${currentPage}&limit=2&search=${search}`);
+      const data = await res.json();
       const div = document.getElementById('products');
       div.innerHTML = '';
-      products.forEach(p => {
+      data.data.forEach(p => {
         const btn = `<button onclick="addToCart('${p.id}')">Add</button>`;
-        div.innerHTML += `${p.name} - ₹${p.price} ${btn}<br>`;
+        div.innerHTML += `<div class="product-card">${p.name} - ₹${p.price} ${btn}</div>`;
       });
+
+      document.getElementById('pageNum').innerText = data.page;
+    }
+
+    function nextPage() {
+      currentPage++;
+      loadProducts();
+    }
+
+    function prevPage() {
+      if (currentPage > 1) {
+        currentPage--;
+        loadProducts();
+      }
     }
 
     async function addToCart(id) {
@@ -61,7 +90,41 @@
         headers: { 'Authorization': 'Bearer ' + token }
       });
       const cart = await res.json();
-      document.getElementById('cartData').textContent = JSON.stringify(cart, null, 2);
+      const div = document.getElementById('cart');
+      div.innerHTML = '';
+
+      for (let item of cart) {
+        const productRes = await fetch(`/products/${item.productId}`);
+        const product = await productRes.json();
+
+        div.innerHTML += `
+          <div>
+            ${product.name} - ₹${product.price} × 
+            <input type="number" value="${item.quantity}" min="1" onchange="updateCart('${item.productId}', this.value)">
+            <button onclick="removeFromCart('${item.productId}')">Remove</button>
+          </div>
+        `;
+      }
+    }
+
+    async function updateCart(productId, quantity) {
+      await fetch('/cart', {
+        method: 'PUT',
+        headers: {
+          'Authorization': 'Bearer ' + token,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ productId, quantity: parseInt(quantity) })
+      });
+      loadCart();
+    }
+
+    async function removeFromCart(productId) {
+      await fetch(`/cart/${productId}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+      loadCart();
     }
 
     async function placeOrder() {
